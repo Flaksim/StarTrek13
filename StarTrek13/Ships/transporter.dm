@@ -21,6 +21,15 @@
 	//var/datum/action/innate/togglelock/lock_action = new
 	//	var/turf/open/teleport_target = null
 
+/obj/machinery/computer/camera_advanced/transporter_control/Initialize()
+	. = ..()
+	link_by_range()
+
+/obj/machinery/computer/camera_advanced/transporter_control/proc/link_by_range()
+	for(var/obj/machinery/trek/transporter/A in orange(10,src))
+		if(istype(A, /obj/machinery/trek/transporter))
+			linked += A
+
 /obj/machinery/computer/camera_advanced/transporter_control/huge
 	name = "transporter control station"
 	icon = 'StarTrek13/icons/trek/transporter.dmi'
@@ -41,15 +50,18 @@
 					retrievable += L
 			var/turf/open/Tu = get_turf(pick(orange(1, get_turf(eyeobj))))
 			T.send(Tu)
+			playsound(loc, 'StarTrek13/sound/borg/machines/transporter.ogg', 40, 4)
 	else if(available_turfs)
 		for(var/obj/machinery/trek/transporter/T in linked)
 			for(var/mob/living/L in T.loc)
 				retrievable += L
 			T.send(pick(available_turfs))
+			playsound(loc, 'StarTrek13/sound/borg/machines/transporter.ogg', 40, 4)
 	else
 		to_chat(usr, "<span class='notice'>Target has no linked transporter pads</span>")
 
 /obj/machinery/computer/camera_advanced/transporter_control/proc/transporters_retrieve()
+	playsound(loc, 'StarTrek13/sound/borg/machines/transporter.ogg', 40, 4)
 	for(var/mob/living/thehewmon in orange(eyeobj,1))
 		var/obj/machinery/trek/transporter/T = pick(linked)
 		T.retrieve(thehewmon)
@@ -220,12 +232,6 @@
 		off_action.Grant(user)
 		actions += off_action
 
-	if(area_action)
-		area_action.target = user
-		area_action.Grant(user)
-		area_action.console = src
-		actions += area_action
-
 	if(down_action)
 		down_action.target = user
 		down_action.Grant(user)
@@ -237,19 +243,6 @@
 		up_action.Grant(user)
 		up_action.console = src
 		actions += up_action
-/*
-	if(movedown_action)
-		movedown_action.target = user
-		movedown_action.Grant(user)
-		movedown_action.console = src
-		actions += movedown_action
-
-	if(moveup_action)
-		moveup_action.target = user
-		moveup_action.Grant(user)
-		moveup_action.console = src
-		actions += moveup_action
-*/
 /*
 	if(lock_action)
 		lock_action.target = user
@@ -333,8 +326,17 @@ Might find a use for this later
 	var/obj/machinery/computer/camera_advanced/transporter_control/console
 
 /datum/action/innate/jump_area/Activate()
-	to_chat(target, "<span class='danger'>!!! not yet implemented because bucket has deadlines and is totally not lazy !!!</span>")
+	return 0
 
+/obj/effect/temp_visual/transporter
+	icon = 'StarTrek13/icons/trek/star_trek.dmi'
+	icon_state = "beamup"
+	duration = 10
+
+/obj/effect/temp_visual/transporter/mob
+	icon = 'StarTrek13/icons/trek/star_trek.dmi'
+	icon_state = "beamout"
+	duration = 20
 
 
 /obj/machinery/trek/transporter
@@ -351,14 +353,18 @@ Might find a use for this later
 	flick("alien-pad", src)
 	for(var/atom/movable/target in loc) //test
 		if(target != src)
-			new /obj/effect/temp_visual/dir_setting/ninja(get_turf(target), target.dir)
+			new /obj/effect/temp_visual/transporter(get_turf(target))
 			target.forceMove(teleport_target)
+			new /obj/effect/temp_visual/transporter/mob(get_turf(target))
+			playsound(target.loc, 'StarTrek13/sound/borg/machines/transporter2.ogg', 40, 4)
 
 /obj/machinery/trek/transporter/proc/retrieve(mob/living/target)
 	flick("alien-pad", src)
-	new /obj/effect/temp_visual/dir_setting/ninja(get_turf(target), target.dir)
 	if(!target.buckled)
+		new /obj/effect/temp_visual/transporter(get_turf(target))
+		playsound(target.loc, 'StarTrek13/sound/borg/machines/transporter2.ogg', 40, 4)
 		target.forceMove(get_turf(src))
+		new /obj/effect/temp_visual/transporter/mob(get_turf(target))
 
 /obj/machinery/trek/transporter/attackby(obj/item/I, mob/user)
 	if(istype(I, /obj/item/tricorder))

@@ -5,7 +5,7 @@
 	icon = 'StarTrek13/icons/trek/trek_wall.dmi'
 	icon_state = "wall"
 	smooth = 1
-	canSmoothWith = list(/turf/closed/wall/ship,/obj/machinery/door/airlock/trek/tng/voy/single,/obj/machinery/door/airlock/trek/tng,/obj/machinery/door/airlock/trek/tng/voy,/turf/closed/wall/ship/voy,/turf/closed/wall/ship/tng,/obj/machinery/door/airlock/trek, /obj/structure/window,/obj/structure/grille,/obj/structure/window/trek,/turf/closed/wall/ship/steel,/obj/structure/window/trek/steel)
+	canSmoothWith = list(/turf/closed/wall/ship,/obj/structure/window/trek/rom,/turf/closed/wall/ship/rom,/obj/machinery/door/airlock/trek/tng/voy/single,/obj/machinery/door/airlock/trek/tng,/obj/machinery/door/airlock/trek/tng/voy,/turf/closed/wall/ship/voy,/turf/closed/wall/ship/tng,/obj/machinery/door/airlock/trek, /obj/structure/window,/obj/structure/grille,/obj/structure/window/trek,/turf/closed/wall/ship/steel,/obj/structure/window/trek/steel)
 
 /turf/closed/wall/ship/tng
 	name = "Corridor"
@@ -17,13 +17,32 @@
 	icon = 'StarTrek13/icons/trek/trek_voy_wall.dmi'
 	icon_state = "wall"
 
+
+/turf/closed/wall/ship/rom //Rommies be crazy
+	name = "Corridor"
+	icon = 'StarTrek13/icons/trek/trek_wall_rom.dmi'
+	icon_state = "wall"
+
+/obj/structure/window/trek/rom
+	name = "window"
+	desc = "A window."
+	icon = 'StarTrek13/icons/trek/trek_wall_rom.dmi'
+	icon_state = "window"
+	density = 1
+	layer = ABOVE_OBJ_LAYER //Just above doors
+	CanAtmosPass = 0
+
 /turf/closed/wall/ship/voy/Initialize(timeofday)
 	. = ..()
-	set_light(5)
+	set_light(3)
+
+/turf/closed/wall/ship/rom/Initialize(timeofday)
+	. = ..()
+	set_light(3)
 
 /turf/closed/wall/ship/tng/Initialize(timeofday)
 	. = ..()
-	set_light(5)
+	set_light(3)
 
 /turf/closed/wall/ship/steel
 	name = "steel hull"
@@ -36,7 +55,7 @@
 	icon_state = "sleeper"
 	death = FALSE
 	roundstart = FALSE
-	outfit = /datum/outfit/job/fed/crewman
+//	outfit = /datum/outfit/job/crewman
 
 
 /obj/machinery/door/airlock/trek/tng
@@ -54,6 +73,13 @@
 	desc = "An advanced door designed in the future, now having relieved bipedal sentients the need to suffer the horror of raising their hands to go into another room."
 
 
+/obj/machinery/door/airlock/trek/tng/jeffries
+	name = "hatch"
+	icon = 'StarTrek13/icons/trek/flaksim_jeffriestube_door.dmi'
+	icon_state = "closed"
+	overlays_file = 'StarTrek13/icons/trek/flaksim_jeffriestube_door.dmi'
+	desc = "An advanced hatch designed in the future, now having relieved bipedal sentients the need to suffer the horror of raising their hands to go into another room."
+
 /obj/machinery/door/airlock/trek/tng/voy
 	name = "airlock"
 	icon = 'StarTrek13/icons/trek/voy_door.dmi'
@@ -65,6 +91,11 @@
 /obj/machinery/door/airlock/trek/tng/single
 	name = "airlock"
 	icon = 'StarTrek13/icons/trek/trek_door_single.dmi'
+	icon_state = "closed"
+
+/obj/machinery/door/airlock/trek/tng/single/defiant
+	name = "bulkhead"
+	icon = 'StarTrek13/icons/trek/defiant_door.dmi'
 	icon_state = "closed"
 
 /obj/machinery/door/airlock/trek/tng/double
@@ -79,6 +110,9 @@
 
 /obj/effect/turf_decal/trek
 	icon_state = "trek_edge2"
+
+/obj/effect/turf_decal/trek/grey
+	icon_state = "trek_edge3"
 
 /obj/effect/turf_decal/trek/cargo
 	icon_state = "trek_edge_cargo"
@@ -126,9 +160,9 @@
 	desc = "it's lit up"
 	smooth = SMOOTH_FALSE //change this when I make a smooth proper version
 
-/turf/open/floor/borg/trek/lit/Initialize(timeofday)
+/turf/open/floor/borg/trek/lit/Initialize()
 	. = ..()
-	set_light(10)
+	set_light(7)
 
 /obj/structure/fluff/ship/warpbooster
 	name = "wall panel"
@@ -242,17 +276,36 @@
 	density = 1
 	blocks_air = 1
 
+
+/obj/structure/promenade_overlay
+	icon = 'StarTrek13/icons/trek/promenade_overlay.PNG'
+	name = "promenade"
+	density = 1
+	CanAtmosPass = FALSE
+	layer = 4.5
+	anchored = 1
+	can_be_unanchored = 0
+	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF | FREEZE_PROOF
+
 /turf/open/generic_overlay
 	icon = 'StarTrek13/icons/trek/generic_overlay.PNG'
 	name = "floor"
 	density = 1
 	blocks_air = 1
 
-/turf/open/transporter_overlay
+/turf/open/transporterblack
+	icon = 'StarTrek13/icons/trek/transporter_black.PNG'
+	name = "black"
+
+/obj/structure/transporter_overlay
 	icon = 'StarTrek13/icons/trek/transporterroom_overlay.PNG'
 	name = "floor"
 	density = 1
-	blocks_air = 1
+	CanAtmosPass = FALSE
+	layer = 4.5
+	anchored = 1
+	can_be_unanchored = 0
+	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF | FREEZE_PROOF
 
 /turf/open/fighter_overlay
 	icon = 'StarTrek13/icons/trek/fighter_interior_overlay.PNG'
@@ -278,6 +331,12 @@
 	density = 1
 	blocks_air = 1
 
+/turf/open/bridge_overlay/defiant
+	icon = 'StarTrek13/icons/trek/bridge_defiant_overlay.PNG'
+	name = "bridge"
+	density = 1
+	blocks_air = 1
+
 /turf/open/bridge_overlay/romulan
 	icon = 'StarTrek13/icons/trek/romulan_bridge_overlay.PNG'
 	name = "floor"
@@ -290,18 +349,36 @@
 	density = 1
 	blocks_air = 1
 
+
+/turf/closed/messhall
+	icon = 'StarTrek13/icons/trek/messhalloverlay.PNG'
+	name = "windows"
+	desc = "huge windows, wow.."
+	density = 1
+	blocks_air = 1
+
+
+/turf/closed/trophies
+	icon = 'StarTrek13/icons/trek/trophyoverlay.PNG'
+	name = "trophy rack"
+	desc = "A huge wall with a tasteful collection of miniature starships adorning it."
+	density = 1
+	blocks_air = 1
+
+
 /turf/open/brig_overlay
 	icon = 'StarTrek13/icons/trek/brig_overlay.PNG'
 	name = "floor"
 	density = 1
 	blocks_air = 1
+	layer = 2.8
 
 /turf/open/storagebay_overlay
 	icon = 'StarTrek13/icons/trek/storagebay_overlay.PNG'
 	name = "floor"
 	density = 1
 	blocks_air = 1
-
+	layer = 2.8
 
 /turf/open/small_engineering_overlay
 	icon = 'StarTrek13/icons/trek/warp_room_small_overlay.PNG'
@@ -330,7 +407,7 @@
 	icon = 'StarTrek13/icons/trek/star_trek.dmi'
 	icon_state = "bridgechair"
 
-/turf/open/floor/trek_special
+/obj/structure/special_trek_turf/brig/wall
 	icon_state = "brig1"
 	name = "wall"
 	desc = "No running through me please"
@@ -339,7 +416,7 @@
 	pixel_x = -3
 	pixel_y = -1
 
-/turf/open/floor/trek_special/cargobay
+/obj/structure/special_trek_turf/cargobay
 	icon_state = "cargobay"
 	name = "wall"
 	desc = "No running through me please"
@@ -348,16 +425,16 @@
 	pixel_x = -3
 	pixel_y = 4
 
-/turf/open/floor/trek_special/dockingbay
+/obj/structure/special_trek_turf/dockingbay
 	icon_state = "dockingbay"
 	name = "wall"
 	desc = "No running through me please"
 	icon = 'StarTrek13/icons/trek/special_turfs.dmi'
-	layer = 4.5
+	layer = 2.8
 	pixel_x = -8
 	pixel_y = 10
 
-/turf/open/floor/trek_special/bridge
+/obj/structure/special_trek_turf/bridge
 	icon_state = "bridge1"
 	name = "wall"
 	desc = "No running through me please"
@@ -366,7 +443,7 @@
 	pixel_x = 6
 	pixel_y = -7
 
-/turf/open/floor/trek_special/bridge/alt
+/obj/structure/special_trek_turf/bridge/alt
 	icon_state = "bridge2"
 	name = "wall"
 	desc = "No running through me please"
@@ -375,7 +452,7 @@
 	pixel_x = 6
 	pixel_y = -6
 
-/turf/open/floor/trek_special/brig
+/obj/structure/special_trek_turf/brig
 	icon_state = "brig"
 	name = "wall"
 	desc = "No running through me please"
@@ -384,7 +461,7 @@
 	pixel_x = 20
 	pixel_y = -13
 
-/turf/open/floor/trek_special/black
+/obj/structure/special_trek_turf
 	icon_state = "black"
 	name = "wall"
 	desc = "No running through me please"
@@ -393,15 +470,20 @@
 	pixel_x = 0
 	pixel_y = 0
 	opacity = 0
+	density = FALSE
+	anchored = TRUE
+	can_be_unanchored = FALSE
+	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF | FREEZE_PROOF
 
-/turf/open/floor/trek_special/storagebay
+
+/obj/structure/special_trek_turf/storagebay
 	icon_state = "storagebay"
 	name = "wall"
 	desc = "No running through me please"
 	icon = 'StarTrek13/icons/trek/special_turfs.dmi'
 	layer = 4.5
 
-/turf/open/floor/trek_special/engibay
+/obj/structure/special_trek_turf/engibay
 	icon_state = "engi1"
 	name = "wall"
 	desc = "No running through me please"

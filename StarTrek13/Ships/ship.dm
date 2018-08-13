@@ -167,34 +167,29 @@
 	return
 
 */
-
-/obj/machinery/space_battle/shield_generator/attack_hand(mob/user)
+/obj/machinery/space_battle/shield_generator/ui_interact(mob/user)
+	. = ..()
 	if(shield_system.failed)
 		to_chat(user, "Shield Systems have failed.")
 		return
-	var/obj/machinery/space_battle/shield_generator/s = ""
+	var/dat = "<B>CONTROL PANEL</B><BR>"
+	dat += "<A href='?src=\ref[src];toggle=1;clicker=\ref[user]'>Toggle Power</A><BR><BR>"
 
-	s += "<B>CONTROL PANEL</B><BR>"
+	dat += "Fan Power: [current_fan ? current_fan.fancurrent : "?"]<BR>"
+	dat += "<A href='?src=\ref[src];fandecrease=1;clicker=\ref[user]'>-</A> -------- <A href='?src=\ref[src];fanincrease=1;clicker=\ref[user]'>+</A><BR><BR>"
 
-	s += "<A href='?src=\ref[src];toggle=1;clicker=\ref[user]'>Toggle Power</A><BR><BR>"
-
-	s += "Fan Power: [current_fan ? current_fan.fancurrent : "?"]<BR>"
-	s += "<A href='?src=\ref[src];fandecrease=1;clicker=\ref[user]'>-</A> -------- <A href='?src=\ref[src];fanincrease=1;clicker=\ref[user]'>+</A><BR><BR>"
-
-	s += "<B>STATISTICS</B><BR>"
-	s += "Shields Maintained: [shields_maintained]<BR>"
-	s += "Flux Rate: [flux_rate]<BR>"
-	s += "Power Usage: [idle_power_usage]<BR>"
-	s += "Heat: [heat]<BR>"
+	dat += "<B>STATISTICS</B><BR>"
+	dat += "Shields Maintained: [shields_maintained]<BR>"
+	dat += "Flux Rate: [flux_rate]<BR>"
+	dat += "Power Usage: [idle_power_usage]<BR>"
+	dat += "Heat: [heat]<BR>"
 	if(current_fan)
-		s += "Fan Utility: [current_fan.fanhealth]"
+		dat += "Fan Utility: [current_fan.fanhealth]"
 
 	var/datum/browser/popup = new(user, "Shield Generator Options", name, 360, 350)
-	popup.set_content(s)
+	popup.set_content(dat)
 	popup.set_title_image(user.browse_rsc_icon(src.icon, src.icon_state))
 	popup.open()
-	if(user.canUseTopic(src))
-		addtimer(CALLBACK(src,/atom/proc/attack_hand, user), 20)
 
 /obj/machinery/space_battle/shield_generator/Topic(href, href_list)
 	..()
@@ -230,7 +225,7 @@
 		ship.SC.shields.active = FALSE
 		return
 	if(!on)
-		if(ship.SC.shields.health >= 5000)
+		if(ship.SC.shields.integrity >= 5000)
 			to_chat(user, "shields activated")
 			on = 1
 			ship.SC.shields.toggled = TRUE
@@ -764,22 +759,28 @@
 	var/ambience = 'StarTrek13/sound/trek/engines/engine.ogg'
 	var/cooldown2 = 116 //11 second cooldown
 	var/saved_time = 0
+	var/datum/looping_sound/trek/engine_hum/soundloop
 
 /obj/structure/fluff/warpcore/Initialize(timeofday)
+	. = ..()
 	START_PROCESSING(SSobj,src)
 
-
 /obj/structure/fluff/warpcore/process()
+	if(SUPERLAGMODE)
+		return
+	if(!soundloop)
+		soundloop = new(list(src), TRUE)
 	if(world.time >= saved_time + cooldown2)
 		saved_time = world.time
-		for(var/mob/M in get_area(src))
-			M << ambience
+		for(var/MM in get_area(src))
+			var/mob/M = MM
+			SEND_SOUND(M, ambience)
 
 /datum/looping_sound/trek/engine_hum
 	start_sound = null
 	start_length = 0
-	mid_sounds = list('StarTrek13/sound/trek/engines/engine.ogg'=1)
-	mid_length = 133
+	mid_sounds = list('StarTrek13/sound/trek/engineloop.ogg'=1)
+	mid_length = 140
 	end_sound = null
 	volume = 70
 
@@ -835,20 +836,15 @@
 	pixel_x = 16
 
 /obj/machinery/shieldgen/wallmounted
-		name = "structural integrity field generator"
-		desc = "Can be activated to seal off hull breaches, don't expect the emergency fields it creates to last long though...."
-		icon = 'StarTrek13/icons/trek/star_trek.dmi'
-		icon_state = "shieldoff"
-		density = 1
-		opacity = 0
-		anchored = 1
-		can_be_unanchored = 0
-		shield_range = 10
-
-
-/obj/machinery/shieldgen/wallmounted/process
-
-//Par made some sick bridge sprites, nut on them and think of Par not me whilst you do
+	name = "structural integrity field generator"
+	desc = "Can be activated to seal off hull breaches, don't expect the emergency fields it creates to last long though...."
+	icon = 'StarTrek13/icons/trek/star_trek.dmi'
+	icon_state = "shieldoff"
+	density = 1
+	opacity = 0
+	anchored = 1
+	can_be_unanchored = 0
+	shield_range = 10
 
 /obj/structure/fluff/ship
 	name = "wall panel"
@@ -942,12 +938,14 @@
 	density = 0
 	anchored = 1.0
 
-/obj/structure/catwalk/Initialize(timeofday)
+/obj/structure/catwalk/Initialize()
 	. = ..()
+	for(var/obj/structure/catwalk/O in range(1))
+		O.update_icon()
 	for(var/obj/structure/catwalk/C in get_turf(src))
 		if(C != src)
 			warning("Duplicate [type] in [loc] ([x], [y], [z])")
-			qdel(C)
+			return INITIALIZE_HINT_QDEL
 	update_icon()
 
 /obj/structure/catwalk/Destroy()
@@ -963,6 +961,33 @@
 		if(2.0)
 			qdel(src)
 	return
+
+/obj/structure/catwalk/update_icon()
+	var/connectdir = 0
+	for(var/direction in GLOB.cardinals)
+		if(locate(/obj/structure/catwalk, get_step(src, direction)))
+			connectdir |= direction
+
+	//Check the diagonal connections for corners, where you have, for example, connections both north and east. In this case it checks for a north-east connection to determine whether to add a corner marker or not.
+	var/diagonalconnect = 0 //1 = NE; 2 = SE; 4 = NW; 8 = SW
+	//NORTHEAST
+	if(connectdir & NORTH && connectdir & EAST)
+		if(locate(/obj/structure/catwalk, get_step(src, NORTHEAST)))
+			diagonalconnect |= 1
+	//SOUTHEAST
+	if(connectdir & SOUTH && connectdir & EAST)
+		if(locate(/obj/structure/catwalk, get_step(src, SOUTHEAST)))
+			diagonalconnect |= 2
+	//NORTHWEST
+	if(connectdir & NORTH && connectdir & WEST)
+		if(locate(/obj/structure/catwalk, get_step(src, NORTHWEST)))
+			diagonalconnect |= 4
+	//SOUTHWEST
+	if(connectdir & SOUTH && connectdir & WEST)
+		if(locate(/obj/structure/catwalk, get_step(src, SOUTHWEST)))
+			diagonalconnect |= 8
+
+	icon_state = "catwalk[connectdir]-[diagonalconnect]"
 
 /obj/structure/catwalk/attackby(obj/item/C as obj, mob/user as mob)
 	if (istype(C, /obj/item/weldingtool))

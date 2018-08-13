@@ -87,6 +87,23 @@ var/global/list/global_ship_list = list()
 	desc = "A star that has gone nova."
 	icon_state = "supernova"
 
+/obj/structure/space_object/earth
+	name = "Earth"
+	desc = "An utterly uninteresting little blue green planet situated in the unfashionable end of the western spiral arm of the galaxy."
+	icon_state = "earth"
+
+/obj/structure/space_object/rocky
+	name = "Class D planetoid"
+	desc = "A lifeless chunk of rock"
+	icon_state = "rockyplanet"
+
+
+/obj/structure/space_object/planet
+	name = "Uncharted planet"
+	desc = "A planet whose composition is unknown."
+	icon_state = "1"
+
+
 /obj/structure/space_object/nebula
 	name = "Nebula"
 	desc = "I wouldn't fly into that if I were you."
@@ -121,6 +138,13 @@ var/global/list/global_ship_list = list()
 
 	for(var/obj/structure/overmap/S in orange(src, 6))
 		if(!S.shields_active)
+			to_chat(S.pilot, "Warning: hull temperature rising.")
 			var/turf/open/floor/picked_turf = pick(get_area_turfs(S.linked_ship))
 			picked_turf.atmos_spawn_air("plasma=60;TEMP=3000")
 			time_elapse = world.time + cooldown
+
+/area/ship/sov_backup
+	name = "USS Herald Of Free Enterprise"
+
+/area/ship/rom_backup
+	name = "Aurelius"

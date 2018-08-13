@@ -30,6 +30,8 @@
 		var/x_speed = vel * cos(angle)
 		var/y_speed = vel * sin(angle)
 		PixelMove(x_speed,y_speed)
+		if(!SUPERLAGMODE)
+			parallax_update()
 		if(pilot && pilot.client)
 			pilot.client.pixelXYshit()
 
@@ -49,8 +51,9 @@
 
 /obj/structure/overmap/proc/parallax_update()
 	if(pilot)
-		for(var/obj/screen/parallax_layer/P in pilot.client.parallax_layers)
+		for(var/PP in pilot.client.parallax_layers)
 		//	var/turf/posobj = get_turf(src)
+			var/obj/screen/parallax_layer/P = PP
 			var/x_speed = 5 * cos(angle)
 			var/y_speed = 5 * sin(angle)
 			P.PixelMove(x_speed,y_speed)
@@ -83,21 +86,31 @@
 		while(nav_target && pilot)
 			navigate()
 
-/obj/structure/overmap/exit(mob/user)
+/obj/structure/overmap/proc/exit(mob/user)
+	pilot.forceMove(initial_loc)
+	initial_loc = null
 	if(pilot.client)
 		pilot.clear_alert("Weapon charge", /obj/screen/alert/charge)
 		pilot.clear_alert("Hull integrity", /obj/screen/alert/charge/hull)
 		RemoveActions()
 		stop_firing() //to stop the firing indicators staying with the pilot
 		to_chat(pilot,"you have stopped controlling [src]")
-		pilot.forceMove(initial_loc)
-		initial_loc = null
 	//	pilot.status_flags -= GODMODE
 		pilot.overmap_ship = null
 		pilot.incorporeal_move = 1 //Refresh movement to fix an issue
 		pilot.incorporeal_move = 0
 		pilot.whatimControllingOMFG = null
 		pilot.client.pixelXYshit()
+		pilot = null
+	else
+		pilot.incorporeal_move = 1 //Refresh movement to fix an issue
+		pilot.incorporeal_move = 0
+		pilot.overmap_ship = null
+		pilot.clear_alert("Weapon charge", /obj/screen/alert/charge)
+		pilot.clear_alert("Hull integrity", /obj/screen/alert/charge/hull)
+		RemoveActions()
+		stop_firing() //to stop the firing indicators staying with the pilot
+		to_chat(pilot,"you have stopped controlling [src]")
 		pilot = null
 
 

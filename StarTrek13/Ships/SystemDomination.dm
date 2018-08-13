@@ -35,6 +35,20 @@
 	health = 100000000 //If you blow this up it'll break things
 	max_health = 100000000
 
+/obj/structure/overmap/away/station/system_outpost/research
+	name = "USS Woolfe Research Outpost"
+	desc = "A station that coordinates all the operations within the system it occupies. You can beam aboard it to capture the outpost"
+	spawn_name = "research"
+	health = 100000000 //If you blow this up it'll break things
+	max_health = 100000000
+
+/obj/structure/overmap/away/station/system_outpost/trade
+	name = "USS Quark Trading Outpost"
+	desc = "A station that coordinates all the operations within the system it occupies. You can beam aboard it to capture the outpost"
+	spawn_name = "trading"
+	health = 100000000 //If you blow this up it'll break things
+	max_health = 100000000
+
 /area/ship/hotel
 	name = "Astralis I outpost"
 
@@ -68,6 +82,10 @@
 		WC.our_ship = src
 	for(var/obj/structure/capture_device/CD in linked_ship)
 		CD.station = src
+	for(var/obj/structure/overmap/ship/runabout/R in linked_ship)
+		R.carrier = src
+	for(var/obj/effect/landmark/runaboutdock/SS in linked_ship)
+		docks += SS
 
 
 /obj/structure/capture_device
@@ -77,7 +95,7 @@
 	icon_state = "systemdominator"
 	var/datum/faction/owner
 	var/beingcaptured = FALSE
-	var/hacktime = 600 //1 minute to capture
+	var/hacktime = 300 //30 seconds to capture
 	var/obj/structure/overmap/away/station/system_outpost/station
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF | FREEZE_PROOF
 	anchored = TRUE

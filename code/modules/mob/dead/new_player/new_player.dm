@@ -14,6 +14,7 @@
 
 	anchored = TRUE	//  don't get pushed around
 	var/mob/living/new_character	//for instant transfer once the round is set up
+	var/datum/crew/crews = list()
 
 /mob/dead/new_player/Initialize()
 	if(client && SSticker.state == GAME_STATE_STARTUP)
@@ -101,6 +102,16 @@
 		//Avoid updating ready if we're after PREGAME (they should use latejoin instead)
 		//This is likely not an actual issue but I don't have time to prove that this
 		//no longer is required
+		if(!client.prefs.player_faction)
+			if(client)
+				var/A
+				A = input(src,"Choose a faction to start as", "Preferences", A) as null|anything in SSfaction.factions
+				if(!A)
+					return 0
+				var/datum/faction/thefaction = A
+				client.prefs.player_faction = thefaction
+			else
+				return 0
 		if(SSticker.current_state <= GAME_STATE_PREGAME)
 			ready = tready
 		//if it's post initialisation and they're trying to observe we do the needful
@@ -117,7 +128,13 @@
 		if(!SSticker || !SSticker.IsRoundInProgress())
 			to_chat(usr, "<span class='danger'>The round is either not ready, or has already finished...</span>")
 			return
-
+		if(!client.prefs.player_faction)
+			var/A
+			A = input(src,"Choose a faction to start as", "Preferences", A) as null|anything in SSfaction.factions
+			if(!A)
+				return 0
+			var/datum/faction/thefaction = A
+			client.prefs.player_faction = thefaction
 		if(href_list["late_join"] == "override")
 			LateChoices()
 			return
@@ -451,13 +468,6 @@
 			if(!client.prefs.player_faction)
 				client.prefs.player_faction = pick(SSfaction.factions)
 				to_chat(client, "A bug just happened, your faction was randomized instead.")
-			if(client.prefs.player_faction.name != job.starting_faction)
-				continue
-			if(!client.prefs.player_faction)
-				client.prefs.player_faction = pick(SSfaction.factions)
-				to_chat(client, "A bug just happened, your faction was randomized instead.")
-			if(client.prefs.player_faction.name != job.starting_faction)
-				continue
 			job_count++;
 			if (job_count > round(available_job_count / 2))
 				dat += "</div><div class='jobsColumn'>"
@@ -488,7 +498,6 @@
 	close_spawn_windows()
 
 	var/mob/living/carbon/human/H = new(loc)
-
 	var/frn = CONFIG_GET(flag/force_random_names)
 	if(!frn)
 		frn = jobban_isbanned(src, "appearance")
@@ -497,7 +506,7 @@
 	if(frn)
 		client.prefs.random_character()
 		client.prefs.real_name = client.prefs.pref_species.random_name(gender,1)
-	client.prefs.copy_to(H)
+	client.prefs.copy_to(H) ///aaand that's why faction spawns got weird, nice
 	H.dna.update_dna_identity()
 	if(mind)
 		if(transfer_after)
@@ -506,7 +515,7 @@
 		mind.transfer_to(H)					//won't transfer key since the mind is not active
 
 	H.name = real_name
-
+	H.player_faction = client.prefs.player_faction //Startrek13 start
 	. = H
 	new_character = .
 	if(transfer_after)

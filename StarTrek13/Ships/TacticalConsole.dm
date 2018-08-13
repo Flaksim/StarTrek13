@@ -10,7 +10,7 @@
 	opacity = 0
 	layer = 4.5
 	var/list/weapons = list()
-	var/list/redalertsounds = list('StarTrek13/sound/borg/machines/redalert.ogg','StarTrek13/sound/borg/machines/redalert2.ogg')
+	var/list/redalertsounds = list('StarTrek13/sound/borg/machines/redalert.ogg')
 	var/target = null
 	var/cooldown2 = 190 //18.5 second cooldown
 	var/saved_time = 0
@@ -24,6 +24,8 @@
 	var/obj/effect/landmark/warp_beacon/targetBeacon = null
 	anchored = 1
 	var/starmapUI
+	var/datum/looping_sound/trek/bridge/soundloop
+	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF | FREEZE_PROOF //it's very bad if this dies
 
 /obj/structure/fluff/helm/desk/tactical/nanotrasen
 	name = "tactical"
@@ -31,7 +33,13 @@
 	icon = 'icons/obj/computer.dmi'
 	icon_state = "computer"
 
-/obj/structure/fluff/helm/desk/tactical/alt
+/obj/structure/fluff/helm/desk/tactical/defiant
+	name = "weapon control computer"
+	desc = "Used to control all ship functions, this one looks extra sleek"
+	icon = 'StarTrek13/icons/trek/defianttactical.dmi'
+	icon_state = "tactical"
+
+/obj/structure/fluff/helm/desk/tactical/alt //only use this on runabouts...please
 	icon_state = "tactical_nt_alt"
 	icon = 'StarTrek13/icons/trek/star_trek.dmi'
 	pixel_x = 15
@@ -39,19 +47,29 @@
 	density = 0
 	layer = 4.6
 	anchored = 1
+	obj/structure/overmap/ship/runabout/theship
+
+/obj/structure/fluff/helm/desk/tactical/alt/AltClick(mob/user)
+	theship.exit(TRUE,TRUE,user)
+
+/obj/structure/fluff/helm/desk/tactical/alt/ShiftClick(mob/user)
+	theship.exit(TRUE,TRUE,user)
 
 /obj/structure/fluff/helm/desk/tactical/process()
+	if(!soundloop)
+		soundloop = new(list(src), TRUE)
 	var/area/thearea = get_area(src)
-	get_weapons()
-	if(world.time >= saved_time + cooldown2)
-		saved_time = world.time
-		for(var/mob/M in thearea)
-			M << redalertsound
+	if(REDALERT)
+		if(world.time >= saved_time + cooldown2)
+			saved_time = world.time
+			for(var/mob/M in thearea)
+				M << redalertsound
 
-/obj/structure/fluff/helm/desk/tactical/Initialize(timeofday)
+/obj/structure/fluff/helm/desk/tactical/Initialize(mapload)
 	. = ..()
 	get_weapons()
 	get_shieldgen()
+	START_PROCESSING(SSobj,src)
 //	var/area/thearea = get_area(src)
 
 /obj/structure/fluff/helm/desk/tactical/proc/get_shieldgen()
@@ -67,10 +85,14 @@
 	weapons = list()
 	torpedoes = list()
 	var/area/thearea = get_area(src)
-	for(var/obj/machinery/power/ship/phaser/P in thearea)
-		weapons += P
-	for(var/obj/structure/torpedo_launcher/T in thearea)
-		torpedoes += T
+	for(var/P in thearea)
+		if(istype(P,/obj/machinery/power/ship/phaser))
+			var/obj/machinery/power/ship/phaser/PP = P
+			weapons += PP
+	for(var/T in thearea)
+		if(istype(T, /obj/structure/torpedo_launcher))
+			var/obj/structure/torpedo_launcher/TT = T
+			torpedoes += TT
 
 /datum/asset/simple/starmap
 	assets = list(
@@ -81,12 +103,16 @@
 	)
 
 /obj/structure/fluff/helm/desk/tactical/attack_hand(mob/user)
+	playsound(src.loc, 'StarTrek13/sound/borg/machines/alert2.ogg', 100,1)
 	get_weapons()
 	get_shieldgen()
 	if(!theship)
 		to_chat(user, "Your ship has been destroyed!")
-	var/mode = input("Tactical console.", "Do what?")in list("fly ship", "remove pilot", "shield control", "red alert siren", "starmap")
+	if(!user.skills.skillcheck(user, "piloting", 5))
+		return
 
+	playsound(src.loc, 'StarTrek13/sound/borg/machines/alertbuzz.ogg', 100,1)
+	var/mode = input("Tactical console.", "Do what?")in list("fly ship", "remove pilot", "shield control", "red alert siren", "starmap")
 	starmapUI = "\
 	<!DOCTYPE html>\
 	<html>\
@@ -278,13 +304,11 @@
 	redalertsound = pick(redalertsounds)
 	if(REDALERT)
 		src.say("RED ALERT DEACTIVATED")
-		REDALERT = 0
-		STOP_PROCESSING(SSobj,src)
+		REDALERT = FALSE
 		return 0
 	else
 		src.say("RED ALERT ACTIVATED")
-		REDALERT = 1
-		START_PROCESSING(SSobj,src)
+		REDALERT = TRUE
 		return 1
 
 /obj/structure/fluff/helm/desk/tactical/proc/fire_phasers(atom/target, mob/user)
